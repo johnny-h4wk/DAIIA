@@ -1,20 +1,18 @@
-import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.List;
 import javax.swing.*;
-import javax.swing.event.*;
 import javax.swing.table.*;
 import javax.swing.border.*;
 
-import jade.core.*;
 import jade.gui.*;
-import jade.util.*;
 import ontologies.*;
 
 /**
  *
  * @author nickstanogias, Ioannis Kerkinos
  */
+@SuppressWarnings("serial")
 class ProfilerAgentGui extends JFrame implements ActionListener, MuseumVocabulary {
 // ----------------------------------------------------------------------------
     Object[] creators = {"", "Raphael", "Pablo Picasso", "Rembrandt", "Vincent Van Gogh"};
@@ -24,8 +22,8 @@ class ProfilerAgentGui extends JFrame implements ActionListener, MuseumVocabular
     private Object[][] data;
     private Object[][] data2;
     
-    private JComboBox genreMenu;
-    private JComboBox creatorMenu;
+    private JComboBox<?> genreMenu;
+    private JComboBox<?> creatorMenu;
     
     private JLabel creatorLabel;
     private JLabel genreLabel;
@@ -68,12 +66,12 @@ class ProfilerAgentGui extends JFrame implements ActionListener, MuseumVocabular
         artifactLabel.setFont(new Font("Arial", 1, 12)); 
         artifactLabel.setText("Recommended Artifacts");
 		
-        genreMenu = new JComboBox(genre);
+        genreMenu = new JComboBox<Object>(genre);
         genreMenu.setBackground(new Color(153, 153, 153));
         genreMenu.setFont(new Font("Verdana", 0, 12));
         genreMenu.setForeground(new Color(0, 51, 51));
         
-        creatorMenu = new JComboBox(creators);
+        creatorMenu = new JComboBox<Object>(creators);
         creatorMenu.setBackground(new Color(153, 153, 153));
         creatorMenu.setFont(new Font("Verdana", 0, 12));
         creatorMenu.setForeground(new Color(0, 51, 51));
@@ -226,7 +224,7 @@ class ProfilerAgentGui extends JFrame implements ActionListener, MuseumVocabular
         msg_text.setText(s);
     }
     
-    void displayArtifacts(java.util.List list) {
+    void displayArtifacts(List<Artifact> list) {
     // -------------------------------------------
         String s = "";
         
@@ -304,7 +302,7 @@ class TableDataModel extends AbstractTableModel {
       return data[row][col];
    }
 
-   public Class getColumnClass(int col) {
+   public Class<?> getColumnClass(int col) {
 // --------------------------------------  Return the class of the values held
 //                                         by a column
       Object o = getValueAt(0, col);

@@ -1,5 +1,4 @@
 
-import jade.content.AgentAction;
 import jade.content.Concept;
 import jade.content.ContentElement;
 import jade.content.lang.Codec;
@@ -7,7 +6,6 @@ import jade.content.lang.sl.SLCodec;
 import jade.content.onto.Ontology;
 import jade.content.onto.basic.Action;
 import jade.content.onto.basic.Result;
-import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
@@ -16,20 +14,20 @@ import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
+
 import java.util.ArrayList;
 import java.util.List;
+
 import ontologies.*;
-import static ontologies.MuseumVocabulary.CURATOR_AGENT;
-import static ontologies.MuseumVocabulary.GET_RECOMMENDATIONS;
-import static ontologies.MuseumVocabulary.TOUR_GUIDE_AGENT;
 
 /**
  *
  * @author nickstanogias, Ioannis Kerkinos
  */
+@SuppressWarnings("serial")
 public class TourGuideAgent extends Agent implements MuseumVocabulary{
     
-    private List artifacts = new ArrayList();
+    private List<Artifact> artifacts = new ArrayList<Artifact>();
     
     private Codec codec = new SLCodec();
     private Ontology ontology = MuseumOntology.getInstance();
@@ -114,7 +112,7 @@ public class TourGuideAgent extends Agent implements MuseumVocabulary{
                     case (ACLMessage.INFORM):	
                         if(content instanceof Result){
                             Result result = (Result) content;
-                            artifacts =(java.util.List)result.getValue() ;
+                            artifacts =(List<Artifact>)result.getValue() ;
                             //System.out.println("Tour-Guide: " + artifacts);
                         }   
                     break;					
@@ -145,7 +143,7 @@ public class TourGuideAgent extends Agent implements MuseumVocabulary{
     // ----------------------------------------------------- Handler for a CreatePreferences request
 
         private ACLMessage request;
-        private List l = new ArrayList();
+        private List<Artifact> l = new ArrayList<Artifact>();
 
         HandleCreatePreferences(Agent a, ACLMessage request) {
             super(a);

@@ -4,31 +4,28 @@ import jade.domain.*;
 import jade.domain.FIPAAgentManagement.*;
 import jade.lang.acl.*;
 import jade.content.*;
-import jade.content.abs.AbsConcept;
-import jade.content.abs.AbsContentElement;
 import jade.content.lang.*;
 import jade.content.lang.sl.*;
 import jade.content.onto.*;
 import jade.content.onto.basic.*;
+
 import java.util.ArrayList;
 import java.util.List;
+
 import ontologies.*;
-import static ontologies.MuseumVocabulary.CURATOR_AGENT;
-import static ontologies.MuseumVocabulary.GET_RECOMMENDATIONS;
-import static ontologies.MuseumVocabulary.SEND_ARTIFACTS_LIST;
-import static ontologies.MuseumVocabulary.TOUR_GUIDE_AGENT;
 
 /**
  *
  * @author nickstanogias, Ioannis Kerkinos
  */
+@SuppressWarnings("serial")
 public class CuratorAgent extends Agent implements MuseumVocabulary{
 
     private Codec codec = new SLCodec();
     private Ontology ontology = MuseumOntology.getInstance();
     private AID server;
     
-    private List artifactList = new ArrayList();
+    private List<Artifact> artifactList = new ArrayList<Artifact>();
     
     protected void setup(){
         Artifact a1 = new Artifact(1, "The last super", "Renaissance", "Leonardo da Vinci", 
@@ -38,8 +35,8 @@ public class CuratorAgent extends Agent implements MuseumVocabulary{
         
         Artifact a2 = new Artifact(2, "School of Athens", "Renaissance", "Raphael",
                                        "The School of Athens (or Scuola di Atene in Italian) was "
-                                             + "one of Raphael’s commissions in the Stanze di Raffaello "
-                                             + "in the Vatican. The School of Athens is considered Raphael’s "
+                                             + "one of Raphaelâ€™s commissions in the Stanze di Raffaello "
+                                             + "in the Vatican. The School of Athens is considered Raphaelâ€™s "
                                              + "master artwork and is considered the perfect example of High Renaissance art.", "Raphael-School-of-Athens-small.jpg", "1510");
         
         Artifact a3 = new Artifact(3, "Mona Lisa", "Renaissance", "Leonardo da Vinci",
@@ -48,21 +45,21 @@ public class CuratorAgent extends Agent implements MuseumVocabulary{
                                             + "is possibly the most famous painting in the world of all time.", "Mona_Lisa_by_Leonardo_da_Vinci_small.jpg", "1519");
         
         Artifact a4 = new Artifact(4, "The Night Watch", "Baroque", "Rembrandt",
-                                    "Rembrandt’s painting of a city guard led by Captain Frans Banning Cocq "
-                                            + "moving out is famous for three reasons: its large size of 11’10” x 14’4”, effective "
+                                    "Rembrandtâ€™s painting of a city guard led by Captain Frans Banning Cocq "
+                                            + "moving out is famous for three reasons: its large size of 11â€™10â€� x 14â€™4â€�, effective "
                                             + "utilization of chiaroscuro (light and shadow balance), and its portrayal of motion in "
                                             + "what would have been a traditionally static painting. Rembrandt completed the piece at "
                                             + "the height of the Dutch Golden Age.", "The_Nightwatch_by_Rembrandt_small.jpg","1642");
         
         Artifact a5 = new Artifact(5, "Las Meninas", "Baroque", "Diego Velazquez",
                                     "Las Meninas, or The Maids of Honor, depicts a room in the Madrid palace "
-                                            + "of Spain’s King Philip IV. The painting is famous for its complexities regarding "
+                                            + "of Spainâ€™s King Philip IV. The painting is famous for its complexities regarding "
                                             + "reality and illusion. Uncertainty is played out in the relations between the viewers "
                                             + "and the figures, as well as between the figures themselves. These complex uncertainties "
                                             + "have welcomed much discussion and analysis among critics and scholars.", "Las_Meninas_by_Diego_Velazquez-small.jpg", "1656");
         
         Artifact a6 = new Artifact(6, "Girl with a Pearl Earing", "Baroque", "Johannes Vermeer",
-                                    "One of Vermeer’s masterpieces, this painting utilizes a pearl earring "
+                                    "One of Vermeerâ€™s masterpieces, this painting utilizes a pearl earring "
                                              + "as a focal point. It is sometimes known as 'the Dutch Mona Lisa' "
                                              + "or 'the Mona Lisa of the North.'", "Johannes_Vermeer_-_The_Girl_With_The_Pearl_Earring-small.jpg", "1665");
         
@@ -71,10 +68,10 @@ public class CuratorAgent extends Agent implements MuseumVocabulary{
                                             + "failed to come to the appointment. The painting was not well-received "
                                             + "when he submitted it to the Royal Academy of Art in London for exhibition, "
                                             + "but shortly later the public showed much respect and deference for it, quickly "
-                                            + "restoring Whistler’s honor.", "Whistlers-Mother-small.jpg", "1871");
+                                            + "restoring Whistlerâ€™s honor.", "Whistlers-Mother-small.jpg", "1871");
         
         Artifact a8 = new Artifact(8, "Starry Night over the Rhone", "19th Century", "Vincent Van Gogh",
-                                    "One of van Gogh’s paintings of Arles at a riverbank not far from the Yellow "
+                                    "One of van Goghâ€™s paintings of Arles at a riverbank not far from the Yellow "
                                             + "House he was residing at the time. The night scenery, lighting, and stars "
                                             + "provided subjects for his more famous paintings, such as The Starry Night.", "Starry_Night_Over_the_Rhone-small.jpg", "1888");
         
@@ -100,7 +97,7 @@ public class CuratorAgent extends Agent implements MuseumVocabulary{
                                             + "melting under the sun.", "The_Persistence_of_Memory-small.jpg", "1931");
         
         Artifact a12 = new Artifact(12, "Guernica", "20th Century", "Pablo Picasso",
-                                    "Pablo Picasso’s detest of the Spanish Civil War is "
+                                    "Pablo Picassoâ€™s detest of the Spanish Civil War is "
                                             + "manifested in an art piece known as Guernica. "
                                             + "The piece was commissioned by the Spanish Republican "
                                             + "government to portray the pain and suffering caused by "
@@ -163,14 +160,14 @@ public class CuratorAgent extends Agent implements MuseumVocabulary{
                 DFAgentDescription[] dfds = DFService.search(myAgent, dfd);
                 if (dfds.length > 0 ) {
                     DFService.deregister(myAgent, dfd);
-		}
+                }
                 DFService.register(myAgent, dfd);
-		System.out.println(getLocalName() + " is ready.");
+                System.out.println(getLocalName() + " is ready.");
             }
             catch (Exception ex) {
                 System.out.println("Curator: Failed registering with DF!");
                 ex.printStackTrace();
-		doDelete();
+                doDelete();
             }
         }
     }
@@ -191,9 +188,9 @@ public class CuratorAgent extends Agent implements MuseumVocabulary{
             }
             try {
                 ContentElement content = getContentManager().extractContent(msg);
-		Concept action = ((Action)content).getAction();
+                Concept action = ((Action)content).getAction();
 
-		switch (msg.getPerformative()) {
+                switch (msg.getPerformative()) {
 
                     case (ACLMessage.REQUEST):
 
@@ -202,7 +199,7 @@ public class CuratorAgent extends Agent implements MuseumVocabulary{
                     break;
 
                     default: replyNotUnderstood(msg);
-		}
+                }
             }
             catch(Exception ex) { ex.printStackTrace(); }
         }
@@ -248,14 +245,14 @@ public class CuratorAgent extends Agent implements MuseumVocabulary{
         }
         
         ACLMessage msg = new ACLMessage(performative);
-	msg.setLanguage(codec.getName());
-	msg.setOntology(ontology.getName());
+		msg.setLanguage(codec.getName());
+		msg.setOntology(ontology.getName());
         Result result = new Result(action, artifactList);
-	try {
-            getContentManager().fillContent(msg, result);
-            msg.addReceiver(server);
-            send(msg);
-        }
-        catch (Exception ex) { ex.printStackTrace(); }
-    }
+		try {
+	            getContentManager().fillContent(msg, result);
+	            msg.addReceiver(server);
+	            send(msg);
+	        }
+	        catch (Exception ex) { ex.printStackTrace(); }
+	    }
 }

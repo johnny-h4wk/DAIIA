@@ -1,3 +1,5 @@
+import java.util.List;
+
 import jade.core.*;
 import jade.content.*;
 import jade.content.lang.Codec;
@@ -5,7 +7,6 @@ import jade.content.lang.sl.SLCodec;
 import jade.content.onto.Ontology;
 import jade.content.onto.basic.Action;
 import jade.content.onto.basic.Result;
-import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.ParallelBehaviour;
 import jade.core.behaviours.SimpleBehaviour;
 import jade.core.behaviours.WakerBehaviour;
@@ -16,14 +17,13 @@ import jade.domain.FIPAException;
 import jade.gui.GuiAgent;
 import jade.gui.GuiEvent;
 import jade.lang.acl.ACLMessage;
-import jade.lang.acl.MessageTemplate;
-import jade.util.leap.List;
 import ontologies.*;
 
 /**
  *
  * @author nickstanogias, Ioannis Kerkinos
  */
+@SuppressWarnings("serial")
 public class ProfilerAgent extends GuiAgent implements MuseumVocabulary{
     
     static final int WAIT = -1;
@@ -77,18 +77,18 @@ public class ProfilerAgent extends GuiAgent implements MuseumVocabulary{
     // -------------------------------------  Receive user command via the gui
 
         command = ev.getType();
-	if (command == QUIT) {
+        if (command == QUIT) {
             alertGui("Bye!");
             doDelete();
             //System.exit(0);
-	}
-	else if (command == GET_RECOMMENDATIONS) {
+		}
+		else if (command == GET_RECOMMENDATIONS) {
             String genre = (String)ev.getParameter(0);
             String creator = (String)ev.getParameter(1);
             CreatePreferences cp = new CreatePreferences(genre, creator);
             //System.out.println("Profiler: " + cp.getGenre() + " " +  cp.getCreator());
             sendMessage(ACLMessage.REQUEST, cp, command);
-	}
+		}
     }
         
     void alertGui(Object response) {
@@ -97,7 +97,7 @@ public class ProfilerAgent extends GuiAgent implements MuseumVocabulary{
         myGui.alertResponse(response);
     }
     
-    void alertGuiArtifacts (java.util.List artifacts){
+    void alertGuiArtifacts (List<Artifact> artifacts){
         myGui.displayArtifacts(artifacts);
     }
     
@@ -151,7 +151,7 @@ public class ProfilerAgent extends GuiAgent implements MuseumVocabulary{
                         Result result = (Result) content;
                         if (result.getValue() instanceof java.util.List) {
                             //System.out.println("Profiler: " + (java.util.List)result.getValue());
-                            alertGuiArtifacts((java.util.List)result.getValue());
+                            alertGuiArtifacts((List<Artifact>)result.getValue());
                         }
                         else alertGui("Unexpected result from server!");
                     }
@@ -159,11 +159,11 @@ public class ProfilerAgent extends GuiAgent implements MuseumVocabulary{
                         alertGui("Unable to decode response!");
                     }
                 }
-		catch (Exception e) { 
+                catch (Exception e) { 
                     e.printStackTrace(); 
-		}
+                }
             }
-           finished = true;
+            finished = true;
         }
 
         public boolean done() { 
@@ -217,7 +217,7 @@ public class ProfilerAgent extends GuiAgent implements MuseumVocabulary{
                 ex.printStackTrace();
 		alertGui("Failed searching int the DF!");
             }
-	}	
+		}	
     }
 
 //--------------------------- Utility methods ----------------------------//
