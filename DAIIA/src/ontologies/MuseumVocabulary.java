@@ -9,6 +9,7 @@ public interface MuseumVocabulary {
     //-------> Basic vocabulary
     public static final int GET_RECOMMENDATIONS = 1;
     public static final int SEND_ARTIFACTS_LIST = 2;
+    public static final int GET_ARTIFACT = 3;
     
     public static final String PROFILER_AGENT = "Profiler agent";
     public static final String TOUR_GUIDE_AGENT = "Tour Guide agent";

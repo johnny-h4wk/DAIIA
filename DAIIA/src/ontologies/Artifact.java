@@ -14,8 +14,11 @@ public class Artifact implements Concept{
     private String description;
     private String img;
     private String year;
+    private int maxPrice;
+    private int reservePrice;
     
-    public Artifact(int id, String name, String genre, String creator, String description, String img, String year){
+    public Artifact(int id, String name, String genre, String creator, String description, String img, String year,
+    								int maxPrice, int reservePrice){
         this.id = id;
         this.name = name;
         this.genre = genre;
@@ -23,6 +26,8 @@ public class Artifact implements Concept{
         this.description = description;
         this.img = img;
         this.year = year;
+        this.maxPrice = maxPrice;
+        this.reservePrice = reservePrice;
     }
     
     public int getId(){
@@ -53,7 +58,23 @@ public class Artifact implements Concept{
         return year;
     }
     
-    public void setId(int id){
+    public int getMaxPrice() {
+			return maxPrice;
+		}
+
+		public void setMaxPrice(int maxPrice) {
+			this.maxPrice = maxPrice;
+		}
+
+		public int getReservePrice() {
+			return reservePrice;
+		}
+
+		public void setReservePrice(int reservePrice) {
+			this.reservePrice = reservePrice;
+		}
+
+		public void setId(int id){
         this.id = id;
     }
     
