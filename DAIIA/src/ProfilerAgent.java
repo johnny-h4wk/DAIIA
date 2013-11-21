@@ -74,16 +74,25 @@ public class ProfilerAgent extends GuiAgent implements MuseumVocabulary {
 				.MatchProtocol(FIPANames.InteractionProtocol.FIPA_DUTCH_AUCTION),
 				MessageTemplate.MatchPerformative(ACLMessage.CFP));
 
+		
+		
 		addBehaviour(new ContractNetResponder(this, template) {
 			@Override
 			protected ACLMessage handleCfp(ACLMessage cfp)
 					throws NotUnderstoodException, RefuseException {
 				try {
+					
+					myGui.append("---------NEW ROUND----------\n");
+					
 					Artifact a = (Artifact) cfp.getContentObject();
 					System.out.println("Auctioner " + getLocalName()
 							+ ": CFP received from auctioneer " + cfp.getSender().getLocalName()
 							+ ". Artifact is " + a.getName() + ", price is "
 							+ Integer.toString(a.getMaxPrice()));
+					myGui.append("Auctioner " + getLocalName()
+							+ ": CFP received from auctioneer " + cfp.getSender().getLocalName()
+							+ ". Artifact is " + a.getName() + ", price is "
+							+ Integer.toString(a.getMaxPrice())+"\n");
 					// System.out.println("Agent "+getLocalName()+": CFP received from "+cfp.getSender().getName()+". Action is "+
 					// a.getName());
 					boolean proposal = evaluateAction(a.getMaxPrice());
@@ -91,18 +100,27 @@ public class ProfilerAgent extends GuiAgent implements MuseumVocabulary {
 						// We provide a proposal
 						System.out.println("Auctioner " + getLocalName()
 								+ ": Proposing to pay, was willing to pay " + myprice);
+						myGui.append("Auctioner " + getLocalName()
+								+ ": Proposing to pay, was willing to pay " + myprice+"\n");
 						ACLMessage propose = cfp.createReply();
 						propose.setPerformative(ACLMessage.PROPOSE);
 						propose.setContent(String.valueOf(System.currentTimeMillis()));
+						
+
+						
 						return propose;
 					}
 					else {
 						// We refuse to provide a proposal
 						System.out.println("Auctioner " + getLocalName()
 								+ ": Refuse to pay, was willing to pay " + myprice);
+						myGui.append("Auctioner " + getLocalName()
+								+ ": Refuse to pay, was willing to pay " + myprice+"\n");
 						ACLMessage refuse = cfp.createReply();
 						refuse.setPerformative(ACLMessage.REFUSE);
 						refuse.setContent(String.valueOf(refuse));
+
+						
 						return refuse;
 					}
 				}
@@ -116,27 +134,41 @@ public class ProfilerAgent extends GuiAgent implements MuseumVocabulary {
 			@Override
 			protected ACLMessage handleAcceptProposal(ACLMessage cfp,
 					ACLMessage propose, ACLMessage accept) throws FailureException {
+
+				
 				System.out.println("Auctioner " + getLocalName() + ": Proposal accepted");
+				myGui.append("Auctioner " + getLocalName() + ": Proposal accepted"+"\n");
 
 				System.out.println("Auctioner " + getLocalName()
 						+ ": Artifact was bought!!");
+				myGui.append("Auctioner " + getLocalName()
+						+ ": Artifact was bought!!"+"\n");
 				ACLMessage inform = accept.createReply();
 				inform.setPerformative(ACLMessage.INFORM);
+				
+	
+				
 				return inform;
 
 			}
 
 			protected void handleRejectProposal(ACLMessage cfp, ACLMessage propose,
 					ACLMessage reject) {
+				
+				myGui.append("---------NEW ROUND----------\n");
+				
 				System.out.println("Auctioner " + getLocalName()
 						+ ": Proposal rejected, not fast enough");
+				myGui.append("Auctioner " + getLocalName()
+						+ ": Proposal rejected, not fast enough"+"\n");
+		
 			}
 
 		});
 	}
 
 	private boolean evaluateAction(int price) {
-		myprice = (0) + (int) (Math.random() * (price * 1.2));
+		myprice = (0) + (int) (Math.random() * (price * 1.1));
 		// Simulate an evaluation by generating a random number
 		if (myprice >= price) {
 			return true;

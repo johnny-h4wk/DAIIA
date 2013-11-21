@@ -1,12 +1,40 @@
-import java.awt.*;
-import java.awt.event.*;
-import java.util.List;
-import javax.swing.*;
-import javax.swing.table.*;
-import javax.swing.border.*;
+import jade.gui.GuiEvent;
 
-import jade.gui.*;
-import ontologies.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.List;
+
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.JTextPane;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.WindowConstants;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableModel;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+
+import ontologies.Artifact;
+import ontologies.MuseumVocabulary;
 
 /**
  * 
@@ -40,7 +68,7 @@ class ProfilerAgentGui extends JFrame implements ActionListener,
 	private JTable artifactTable;
 
 	private ProfilerAgent myAgent;
-	private JTable table;
+	private JTextPane textPane;
 
 	public ProfilerAgentGui(ProfilerAgent a) {
 		setPreferredSize(new Dimension(395, 439));
@@ -191,20 +219,16 @@ class ProfilerAgentGui extends JFrame implements ActionListener,
 				artifactLabel.setText("Recommended Artifacts");
 				
 				JPanel panel = new JPanel();
-				panel.setLayout(null);
 				panel.setBounds(15, 272, 347, 117);
 				base.add(panel);
+				panel.setLayout(null);
 				
-				table = new JTable((TableModel) null);
-				table.setPreferredScrollableViewportSize(new Dimension(320, 100));
-				table.setFont(new Font("Arial", Font.PLAIN, 11));
-				table.setFillsViewportHeight(true);
-				table.setBounds(0, 0, 345, 115);
-				panel.add(table);
-				
-				JScrollPane scrollPane_1 = new JScrollPane();
-				scrollPane_1.setBounds(0, 0, 347, 117);
-				panel.add(scrollPane_1);
+				textPane = new JTextPane();	
+				JScrollPane jsp = new JScrollPane(textPane);
+				jsp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+				jsp.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+				jsp.setBounds(0, 0, 345, 115);
+				panel.add(jsp);
 				
 				JLabel lblAuction = new JLabel();
 				lblAuction.setText("Auction");
@@ -376,4 +400,15 @@ class ProfilerAgentGui extends JFrame implements ActionListener,
 			return data;
 		}
 	}// end TableDataModel
+	public void append(String s) {
+		   try {
+		      Document doc = textPane.getDocument();
+		      doc.insertString(doc.getLength(), s, null);
+		   } catch(BadLocationException exc) {
+		      exc.printStackTrace();
+		   }
+		}
+	public JTextPane getTextPane() {
+		return textPane;
+	}
 }

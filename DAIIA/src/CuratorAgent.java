@@ -20,6 +20,8 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Vector;
 
+import javax.swing.JList;
+
 import ontologies.*;
 
 /**
@@ -34,6 +36,7 @@ public class CuratorAgent extends GuiAgent implements MuseumVocabulary {
 	private AID server;
 	private int command;
 	transient protected CuratorGui myGui; // The gui
+	private int round = 0;
 
 	private List<Artifact> artifactList = new ArrayList<Artifact>();
 
@@ -274,14 +277,23 @@ public class CuratorAgent extends GuiAgent implements MuseumVocabulary {
 				e1.printStackTrace();
 			}
 			
+			round++;
+			
+			if (round == 1){
+				myGui.getTextPane().setText("");
+			}
+			
+			myGui.append("---------ROUND "+round+"----------\n");
 			addBehaviour(new ContractNetInitiator(myAgent, msg) {
 				
 				protected void handlePropose(ACLMessage propose, Vector v) {
 					System.out.println("Auctioneer "+propose.getSender().getLocalName()+" proposed ");
+					myGui.append("Auctioneer "+propose.getSender().getLocalName()+" proposed "+"\n");
 				}
 				
 				protected void handleRefuse(ACLMessage refuse) {
 					System.out.println("Auctioneer "+refuse.getSender().getLocalName()+" refused");
+					myGui.append("Auctioneer "+refuse.getSender().getLocalName()+" refused"+"\n");
 				}
 				
 				protected void handleFailure(ACLMessage failure) {
@@ -292,6 +304,7 @@ public class CuratorAgent extends GuiAgent implements MuseumVocabulary {
 					}
 					else {
 						System.out.println("Auctioneer "+failure.getSender().getLocalName()+" failed");
+						
 					}
 					// Immediate failure --> we will not receive a response from this agent
 					nResponders--;
@@ -321,10 +334,13 @@ public class CuratorAgent extends GuiAgent implements MuseumVocabulary {
 							}
 						}
 					}
-					// Accept the proposal of the best proposer
+					// Accept the proposal of the fastest proposer
 					if (accept != null) {
 						System.out.println("Accepting proposal "+" from responder "+bestProposer.getLocalName());
+						myGui.append("Accepting proposal "+" from responder "+bestProposer.getLocalName()+"\n");
 						accept.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
+						round = 0;
+						
 					}			
 					else {
 						int  price = artifact.getMaxPrice();
@@ -335,12 +351,20 @@ public class CuratorAgent extends GuiAgent implements MuseumVocabulary {
 						}
 						else{
 							System.out.println("Auction is over. Artifact was not sold");
+							myGui.append("Auction is over. Artifact was not sold"+"\n");
+							round = 0;
+							
 						}
 					}
 				}
 				
 				protected void handleInform(ACLMessage inform) {
 					System.out.println("Auctioner "+inform.getSender().getLocalName()+" successfully bought the artifact");
+					myGui.append("Auctioner "+inform.getSender().getLocalName()+" successfully bought the artifact"+"\n");
+					artifactList.remove(myGui.getSelection());
+					myGui.setList(new JList<Object>(artifactList.toArray()));
+					myGui.getScroller().setViewportView(myGui.getList());
+					
 				}
 				
 			} 
@@ -456,4 +480,6 @@ public class CuratorAgent extends GuiAgent implements MuseumVocabulary {
 		}
 		
 	}
+	
+	
 }

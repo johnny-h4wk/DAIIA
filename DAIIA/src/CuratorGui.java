@@ -15,11 +15,14 @@ import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
 
 import ontologies.Artifact;
 import ontologies.MuseumVocabulary;
 
 import javax.swing.JScrollBar;
+import javax.swing.JTextPane;
 
 
 @SuppressWarnings("serial")
@@ -27,11 +30,12 @@ public class CuratorGui extends JFrame implements ActionListener, MuseumVocabula
 
 	private JPanel contentPane;
 	private JButton startButton;
-	private JTextArea text;
 	private JList<?> list;
 	private JScrollPane scroller;
+	private int selection;
 	
 	private CuratorAgent myAgent;
+	private JTextPane textPane;
 
 	/**
 	 * Create the frame.
@@ -48,6 +52,13 @@ public class CuratorGui extends JFrame implements ActionListener, MuseumVocabula
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
 		
+		textPane = new JTextPane();	
+		JScrollPane jsp = new JScrollPane(textPane);
+		jsp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+		jsp.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		jsp.setBounds(6, 165, 421, 95);
+		contentPane.add(jsp);
+		
 		list = new JList<Object>(myAgent.getArtifactList().toArray());
 		list.setVisibleRowCount(5);
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -57,11 +68,6 @@ public class CuratorGui extends JFrame implements ActionListener, MuseumVocabula
 		scroller.setBounds(6, 19, 109, 135);
 		contentPane.add(scroller);
 		
-		
-		text = new JTextArea();
-		text.setBounds(127, 163, 223, 95);
-		contentPane.add(text);
-		
 		startButton = new JButton("Start Auction");
 		startButton.setBounds(233, 79, 117, 29);
 		startButton.addActionListener(this);
@@ -70,16 +76,14 @@ public class CuratorGui extends JFrame implements ActionListener, MuseumVocabula
 	public JButton getStartButton() {
 		return startButton;
 	}
-	public JTextArea getText() {
-		return text;
-	}
+
 	public JList<?> getList() {
 		return list;
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		int selection = list.getSelectedIndex();
+		selection = list.getSelectedIndex();
 		Artifact a = myAgent.getArtifactList().get(selection);
 		GuiEvent ge = new GuiEvent(this, GET_ARTIFACT);
 		// System.out.println(gen + cre);
@@ -87,4 +91,32 @@ public class CuratorGui extends JFrame implements ActionListener, MuseumVocabula
 		myAgent.postGuiEvent(ge);
 		
 	}
+	public int getSelection() {
+		return selection;
+	}
+	public void setSelection(int selection) {
+		this.selection = selection;
+	}
+	public void setList(JList<?> list) {
+		this.list = list;
+	}
+	public JScrollPane getScroller() {
+		return scroller;
+	}
+	public void setScroller(JScrollPane scroller) {
+		this.scroller = scroller;
+	}
+
+	public JTextPane getTextPane() {
+		return textPane;
+	}
+	
+	public void append(String s) {
+		   try {
+		      Document doc = textPane.getDocument();
+		      doc.insertString(doc.getLength(), s, null);
+		   } catch(BadLocationException exc) {
+		      exc.printStackTrace();
+		   }
+		}
 }
