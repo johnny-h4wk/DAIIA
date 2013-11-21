@@ -22,284 +22,314 @@ import jade.gui.GuiAgent;
 import jade.gui.GuiEvent;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.lang.acl.UnreadableException;
 import jade.proto.ContractNetResponder;
 import ontologies.*;
 
 /**
- *
+ * 
  * @author nickstanogias, Ioannis Kerkinos
  */
 @SuppressWarnings("serial")
-public class ProfilerAgent extends GuiAgent implements MuseumVocabulary{
-    
-    static final int WAIT = -1;
-    static final int QUIT = 0;
-    private int command = WAIT;
-    private AID server;
-    
-    private Codec codec = new SLCodec();
-    private Ontology ontology = MuseumOntology.getInstance();
-    transient protected ProfilerAgentGui myGui;  // The gui
-    
-    protected void setup() {
-    // ---------------------
+public class ProfilerAgent extends GuiAgent implements MuseumVocabulary {
 
-      // Register language and ontology
-      getContentManager().registerLanguage(codec);
-      getContentManager().registerOntology(ontology);
-      
-      // Register in the DF
-      try {
-        DFAgentDescription dfd = new DFAgentDescription();
-        dfd.setName(getAID());
-        ServiceDescription  sd = new ServiceDescription();
-        sd.setType(PROFILER_AGENT);
-        sd.setName(getName());
-        dfd.addServices(sd);
-        DFService.register(this, dfd);
-        System.out.println(getLocalName() + " registered with the DF");
-      }
-      catch (FIPAException fe) {
-        System.out.println("Failed registering with DF!");
-        fe.printStackTrace();
-      }
+	static final int WAIT = -1;
+	static final int QUIT = 0;
+	private int command = WAIT;
+	private AID server;
+	public int myprice;
 
-      // Set up the gui
-      myGui = new ProfilerAgentGui(this);
-      myGui.setVisible(true);
-      
-      MessageTemplate template = MessageTemplate.and(
-  				MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET),
-  				MessageTemplate.MatchPerformative(ACLMessage.CFP) );
+	private Codec codec = new SLCodec();
+	private Ontology ontology = MuseumOntology.getInstance();
+	transient protected ProfilerAgentGui myGui; // The gui
 
-  		addBehaviour(new ContractNetResponder(this, template) {
-  			@Override
-  			protected ACLMessage handleCfp(ACLMessage cfp) throws NotUnderstoodException, RefuseException {
-  				System.out.println("Agent "+getLocalName()+": CFP received from "+cfp.getSender().getName()+". Action is "+cfp.getContent());
-  				int proposal = evaluateAction();
-  				if (proposal > 2) {
-  					// We provide a proposal
-  					System.out.println("Agent "+getLocalName()+": Proposing "+proposal);
-  					ACLMessage propose = cfp.createReply();
-  					propose.setPerformative(ACLMessage.PROPOSE);
-  					propose.setContent(String.valueOf(proposal));
-  					return propose;
-  				}
-  				else {
-  					// We refuse to provide a proposal
-  					System.out.println("Agent "+getLocalName()+": Refuse");
-  					throw new RefuseException("evaluation-failed");
-  				}
-  			}
+	protected void setup() {
+		// ---------------------
 
-  			@Override
-  			protected ACLMessage handleAcceptProposal(ACLMessage cfp, ACLMessage propose,ACLMessage accept) throws FailureException {
-  				System.out.println("Agent "+getLocalName()+": Proposal accepted");
-  				if (performAction()) {
-  					System.out.println("Agent "+getLocalName()+": Action successfully performed");
-  					ACLMessage inform = accept.createReply();
-  					inform.setPerformative(ACLMessage.INFORM);
-  					return inform;
-  				}
-  				else {
-  					System.out.println("Agent "+getLocalName()+": Action execution failed");
-  					throw new FailureException("unexpected-error");
-  				}	
-  			}
+		// Register language and ontology
+		getContentManager().registerLanguage(codec);
+		getContentManager().registerOntology(ontology);
 
-  			protected void handleRejectProposal(ACLMessage cfp, ACLMessage propose, ACLMessage reject) {
-  				System.out.println("Agent "+getLocalName()+": Proposal rejected");
-  			}
-  		} );
-    }
-    
-    private int evaluateAction() {
-  		// Simulate an evaluation by generating a random number
-  		return (int) (Math.random() * 10);
-  	}
+		// Register in the DF
+		try {
+			DFAgentDescription dfd = new DFAgentDescription();
+			dfd.setName(getAID());
+			ServiceDescription sd = new ServiceDescription();
+			sd.setType(PROFILER_AGENT);
+			sd.setName(getName());
+			dfd.addServices(sd);
+			DFService.register(this, dfd);
+			System.out.println(getLocalName() + " registered with the DF");
+		}
+		catch (FIPAException fe) {
+			System.out.println("Failed registering with DF!");
+			fe.printStackTrace();
+		}
 
-  	private boolean performAction() {
-  		// Simulate action execution by generating a random number
-  		return (Math.random() > 0.2);
-  	}
-    
-    protected void takeDown() {
-    // ------------------------  Terminate the program properly
+		// Set up the gui
+		myGui = new ProfilerAgentGui(this);
+		myGui.setVisible(true);
 
-       System.out.println(getLocalName() + " is now shutting down.");
-       if (myGui!=null) {
-          myGui.setVisible(false);
-          myGui.dispose();
-       }
-    }
-    
-    protected void onGuiEvent(GuiEvent ev) {
-    // -------------------------------------  Receive user command via the gui
+		MessageTemplate template = MessageTemplate.and(MessageTemplate
+				.MatchProtocol(FIPANames.InteractionProtocol.FIPA_DUTCH_AUCTION),
+				MessageTemplate.MatchPerformative(ACLMessage.CFP));
 
-        command = ev.getType();
-        if (command == QUIT) {
-            alertGui("Bye!");
-            doDelete();
-            //System.exit(0);
+		addBehaviour(new ContractNetResponder(this, template) {
+			@Override
+			protected ACLMessage handleCfp(ACLMessage cfp)
+					throws NotUnderstoodException, RefuseException {
+				try {
+					Artifact a = (Artifact) cfp.getContentObject();
+					System.out.println("Auctioner " + getLocalName()
+							+ ": CFP received from auctioneer " + cfp.getSender().getLocalName()
+							+ ". Artifact is " + a.getName() + ", price is "
+							+ Integer.toString(a.getMaxPrice()));
+					// System.out.println("Agent "+getLocalName()+": CFP received from "+cfp.getSender().getName()+". Action is "+
+					// a.getName());
+					boolean proposal = evaluateAction(a.getMaxPrice());
+					if (proposal) {
+						// We provide a proposal
+						System.out.println("Auctioner " + getLocalName()
+								+ ": Proposing to pay, was willing to pay " + myprice);
+						ACLMessage propose = cfp.createReply();
+						propose.setPerformative(ACLMessage.PROPOSE);
+						propose.setContent(String.valueOf(System.currentTimeMillis()));
+						return propose;
+					}
+					else {
+						// We refuse to provide a proposal
+						System.out.println("Auctioner " + getLocalName()
+								+ ": Refuse to pay, was willing to pay " + myprice);
+						ACLMessage refuse = cfp.createReply();
+						refuse.setPerformative(ACLMessage.REFUSE);
+						refuse.setContent(String.valueOf(refuse));
+						return refuse;
+					}
+				}
+				catch (UnreadableException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				return null;
+			}
+
+			@Override
+			protected ACLMessage handleAcceptProposal(ACLMessage cfp,
+					ACLMessage propose, ACLMessage accept) throws FailureException {
+				System.out.println("Auctioner " + getLocalName() + ": Proposal accepted");
+
+				System.out.println("Auctioner " + getLocalName()
+						+ ": Artifact was bought!!");
+				ACLMessage inform = accept.createReply();
+				inform.setPerformative(ACLMessage.INFORM);
+				return inform;
+
+			}
+
+			protected void handleRejectProposal(ACLMessage cfp, ACLMessage propose,
+					ACLMessage reject) {
+				System.out.println("Auctioner " + getLocalName()
+						+ ": Proposal rejected, not fast enough");
+			}
+
+		});
+	}
+
+	private boolean evaluateAction(int price) {
+		myprice = (0) + (int) (Math.random() * (price * 1.2));
+		// Simulate an evaluation by generating a random number
+		if (myprice >= price) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	protected void takeDown() {
+		// ------------------------ Terminate the program properly
+
+		System.out.println(getLocalName() + " is now shutting down.");
+		if (myGui != null) {
+			myGui.setVisible(false);
+			myGui.dispose();
+		}
+	}
+
+	protected void onGuiEvent(GuiEvent ev) {
+		// ------------------------------------- Receive user command via the gui
+
+		command = ev.getType();
+		if (command == QUIT) {
+			alertGui("Bye!");
+			doDelete();
+			// System.exit(0);
 		}
 		else if (command == GET_RECOMMENDATIONS) {
-            String genre = (String)ev.getParameter(0);
-            String creator = (String)ev.getParameter(1);
-            CreatePreferences cp = new CreatePreferences(genre, creator);
-            //System.out.println("Profiler: " + cp.getGenre() + " " +  cp.getCreator());
-            sendMessage(ACLMessage.REQUEST, cp, command);
+			String genre = (String) ev.getParameter(0);
+			String creator = (String) ev.getParameter(1);
+			CreatePreferences cp = new CreatePreferences(genre, creator);
+			// System.out.println("Profiler: " + cp.getGenre() + " " +
+			// cp.getCreator());
+			sendMessage(ACLMessage.REQUEST, cp, command);
 		}
-    }
-        
-    void alertGui(Object response) {
-    // -----------------------------  Process the response of the server
-    //                                to the gui for display
-        myGui.alertResponse(response);
-    }
-    
-    void alertGuiArtifacts (List<Artifact> artifacts){
-        myGui.displayArtifacts(artifacts);
-    }
-    
-    class WaitServerResponse extends ParallelBehaviour {
-    // ----------------------------------------------------  launch a SimpleBehaviour to receive
-    //                                                       servers response and a WakerBehaviour
-    //                                                       to terminate the waiting if there is
-    //                                                       no response from the server
-      WaitServerResponse(Agent a) {
-
-         super(a, 1);
-
-         addSubBehaviour(new ReceiveResponse(myAgent));
-
-         addSubBehaviour(new WakerBehaviour(myAgent, 5000) {
-
-            protected void handleElapsedTimeout() {
-               alertGui("No response from server. Please, try later!");
-            }
-         });
-      }
-   }
-    
-    class ReceiveResponse extends SimpleBehaviour {
-    // --------------------------------------------- // Receive and handle server responses
-
-        private boolean finished = false;
-
-	ReceiveResponse(Agent a) {
-            super(a);
-        }
-
-        public void action() {
-            ACLMessage msg = receive();
-
-            if (msg == null) { 
-                block(); 
-                return; 
-            }
-            if (msg.getPerformative() == ACLMessage.NOT_UNDERSTOOD){
-                alertGui("Response: NOT UNDERSTOOD!");
-            }
-            else if (msg.getPerformative() != ACLMessage.INFORM){
-                alertGui("Unexpected msg from server!");
-            }
-            else {
-                try {
-                    ContentElement content = getContentManager().extractContent(msg);
-                    //Concept action = ((Action)content).getAction();
-                    if (content instanceof Result) {
-                        Result result = (Result) content;
-                        if (result.getValue() instanceof java.util.List) {
-                            //System.out.println("Profiler: " + (java.util.List)result.getValue());
-                            alertGuiArtifacts((List<Artifact>)result.getValue());
-                        }
-                        else alertGui("Unexpected result from server!");
-                    }
-                    else {
-                        alertGui("Unable to decode response!");
-                    }
-                }
-                catch (Exception e) { 
-                    e.printStackTrace(); 
-                }
-            }
-            finished = true;
-        }
-
-        public boolean done() { 
-            return finished; 
-        }
-
-        public int onEnd() {
-            command = WAIT;
-            return 0;
 	}
-   }
-    
-    void lookupServer(int command) {
-    // -----------------------------  Search in the DF to retrieve the curator 
-    //                                or tour-guide AID
 
-        ServiceDescription sd = new ServiceDescription();
-		
-	if (command == GET_RECOMMENDATIONS) {
-            sd.setType(TOUR_GUIDE_AGENT);
-            DFAgentDescription dfd = new DFAgentDescription();
-            dfd.addServices(sd);
-            try {
-                DFAgentDescription[] dfds = DFService.search(this, dfd);
-		if (dfds.length > 0 ) {
-                    server = dfds[0].getName();
-		}
-                else {
-                    alertGui("Couldn't localize tour-guide!");
-                }
-            }
-            catch (Exception ex) {
-                ex.printStackTrace();
-		alertGui("Failed searching in the DF!");
-            }
+	void alertGui(Object response) {
+		// ----------------------------- Process the response of the server
+		// to the gui for display
+		myGui.alertResponse(response);
 	}
-	else {
-            sd.setType(CURATOR_AGENT);
-            DFAgentDescription dfd = new DFAgentDescription();
-            dfd.addServices(sd);
-            try {
-                DFAgentDescription[] dfds = DFService.search(this, dfd);
-		if (dfds.length > 0 ) {
-                    server = dfds[0].getName();
+
+	void alertGuiArtifacts(List<Artifact> artifacts) {
+		myGui.displayArtifacts(artifacts);
+	}
+
+	class WaitServerResponse extends ParallelBehaviour {
+		// ---------------------------------------------------- launch a
+		// SimpleBehaviour to receive
+		// servers response and a WakerBehaviour
+		// to terminate the waiting if there is
+		// no response from the server
+		WaitServerResponse(Agent a) {
+
+			super(a, 1);
+
+			addSubBehaviour(new ReceiveResponse(myAgent));
+
+			addSubBehaviour(new WakerBehaviour(myAgent, 5000) {
+
+				protected void handleElapsedTimeout() {
+					alertGui("No response from server. Please, try later!");
+				}
+			});
 		}
-		else  {
-                    alertGui("Couldn't localize curator!");
-                }
-            }
-            catch (Exception ex) {
-                ex.printStackTrace();
-		alertGui("Failed searching int the DF!");
-            }
-		}	
-    }
+	}
 
-//--------------------------- Utility methods ----------------------------//
+	class ReceiveResponse extends SimpleBehaviour {
+		// --------------------------------------------- // Receive and handle
+		// server responses
 
-    void sendMessage(int performative, AgentAction action, int command) {
-    // ------------------------------------------------------------------
+		private boolean finished = false;
 
-        lookupServer(command);
-	if (server == null) {
-            alertGui("Unable to localize the server! Operation aborted!");
-            return;
-        }
-        ACLMessage msg = new ACLMessage(performative);
-	msg.setLanguage(codec.getName());
-	msg.setOntology(ontology.getName());
-	try {
-            getContentManager().fillContent(msg, new Action(server, action));
-            msg.addReceiver(server);
-            send(msg);
-            addBehaviour(new WaitServerResponse(this));
-        }
-        catch (Exception ex) { ex.printStackTrace(); }
-    }
-  
+		ReceiveResponse(Agent a) {
+			super(a);
+		}
+
+		public void action() {
+			ACLMessage msg = receive();
+
+			if (msg == null) {
+				block();
+				return;
+			}
+			if (msg.getPerformative() == ACLMessage.NOT_UNDERSTOOD) {
+				alertGui("Response: NOT UNDERSTOOD!");
+			}
+			else if (msg.getPerformative() != ACLMessage.INFORM) {
+				alertGui("Unexpected msg from server!");
+			}
+			else {
+				try {
+					ContentElement content = getContentManager().extractContent(msg);
+					// Concept action = ((Action)content).getAction();
+					if (content instanceof Result) {
+						Result result = (Result) content;
+						if (result.getValue() instanceof java.util.List) {
+							// System.out.println("Profiler: " +
+							// (java.util.List)result.getValue());
+							alertGuiArtifacts((List<Artifact>) result.getValue());
+						}
+						else
+							alertGui("Unexpected result from server!");
+					}
+					else {
+						alertGui("Unable to decode response!");
+					}
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			finished = true;
+		}
+
+		public boolean done() {
+			return finished;
+		}
+
+		public int onEnd() {
+			command = WAIT;
+			return 0;
+		}
+	}
+
+	void lookupServer(int command) {
+		// ----------------------------- Search in the DF to retrieve the curator
+		// or tour-guide AID
+
+		ServiceDescription sd = new ServiceDescription();
+
+		if (command == GET_RECOMMENDATIONS) {
+			sd.setType(TOUR_GUIDE_AGENT);
+			DFAgentDescription dfd = new DFAgentDescription();
+			dfd.addServices(sd);
+			try {
+				DFAgentDescription[] dfds = DFService.search(this, dfd);
+				if (dfds.length > 0) {
+					server = dfds[0].getName();
+				}
+				else {
+					alertGui("Couldn't localize tour-guide!");
+				}
+			}
+			catch (Exception ex) {
+				ex.printStackTrace();
+				alertGui("Failed searching in the DF!");
+			}
+		}
+		else {
+			sd.setType(CURATOR_AGENT);
+			DFAgentDescription dfd = new DFAgentDescription();
+			dfd.addServices(sd);
+			try {
+				DFAgentDescription[] dfds = DFService.search(this, dfd);
+				if (dfds.length > 0) {
+					server = dfds[0].getName();
+				}
+				else {
+					alertGui("Couldn't localize curator!");
+				}
+			}
+			catch (Exception ex) {
+				ex.printStackTrace();
+				alertGui("Failed searching int the DF!");
+			}
+		}
+	}
+
+	// --------------------------- Utility methods ----------------------------//
+
+	void sendMessage(int performative, AgentAction action, int command) {
+		// ------------------------------------------------------------------
+
+		lookupServer(command);
+		if (server == null) {
+			alertGui("Unable to localize the server! Operation aborted!");
+			return;
+		}
+		ACLMessage msg = new ACLMessage(performative);
+		msg.setLanguage(codec.getName());
+		msg.setOntology(ontology.getName());
+		try {
+			getContentManager().fillContent(msg, new Action(server, action));
+			msg.addReceiver(server);
+			send(msg);
+			addBehaviour(new WaitServerResponse(this));
+		}
+		catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
 }

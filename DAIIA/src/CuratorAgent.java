@@ -13,6 +13,7 @@ import jade.content.onto.*;
 import jade.content.onto.basic.*;
 import jade.domain.FIPANames;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
@@ -235,12 +236,12 @@ public class CuratorAgent extends GuiAgent implements MuseumVocabulary {
 
 	class SearchInDF extends OneShotBehaviour {
 
-			String artifactName;
+			Artifact artifact;
 			ACLMessage msg;
 			int nResponders;
-		SearchInDF(Agent a, String name) {
+		SearchInDF(Agent a, Artifact ar) {
 			super(a);
-			artifactName = name;
+			artifact = ar;
 		}
 
 		public void action() {
@@ -262,19 +263,25 @@ public class CuratorAgent extends GuiAgent implements MuseumVocabulary {
 				//alertGui("Failed searching in the DF!");
 			}
 			
-			msg.setProtocol(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET);
+			msg.setProtocol(FIPANames.InteractionProtocol.FIPA_DUTCH_AUCTION);
 			// We want to receive a reply in 10 secs
 			msg.setReplyByDate(new Date(System.currentTimeMillis() + 10000));
-			msg.setContent("dummy-action");
+			try {
+				msg.setContentObject(artifact);
+			}
+			catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 			
 			addBehaviour(new ContractNetInitiator(myAgent, msg) {
 				
 				protected void handlePropose(ACLMessage propose, Vector v) {
-					System.out.println("Agent "+propose.getSender().getName()+" proposed "+propose.getContent());
+					System.out.println("Auctioneer "+propose.getSender().getLocalName()+" proposed ");
 				}
 				
 				protected void handleRefuse(ACLMessage refuse) {
-					System.out.println("Agent "+refuse.getSender().getName()+" refused");
+					System.out.println("Auctioneer "+refuse.getSender().getLocalName()+" refused");
 				}
 				
 				protected void handleFailure(ACLMessage failure) {
@@ -284,7 +291,7 @@ public class CuratorAgent extends GuiAgent implements MuseumVocabulary {
 						System.out.println("Responder does not exist");
 					}
 					else {
-						System.out.println("Agent "+failure.getSender().getName()+" failed");
+						System.out.println("Auctioneer "+failure.getSender().getLocalName()+" failed");
 					}
 					// Immediate failure --> we will not receive a response from this agent
 					nResponders--;
@@ -296,7 +303,7 @@ public class CuratorAgent extends GuiAgent implements MuseumVocabulary {
 						System.out.println("Timeout expired: missing "+(nResponders - responses.size())+" responses");
 					}
 					// Evaluate proposals.
-					int bestProposal = -1;
+					long bestProposal = Long.MAX_VALUE;
 					AID bestProposer = null;
 					ACLMessage accept = null;
 					Enumeration e = responses.elements();
@@ -306,8 +313,8 @@ public class CuratorAgent extends GuiAgent implements MuseumVocabulary {
 							ACLMessage reply = msg.createReply();
 							reply.setPerformative(ACLMessage.REJECT_PROPOSAL);
 							acceptances.addElement(reply);
-							int proposal = Integer.parseInt(msg.getContent());
-							if (proposal > bestProposal) {
+							long proposal = Long.parseLong(msg.getContent());
+							if (proposal < bestProposal) {
 								bestProposal = proposal;
 								bestProposer = msg.getSender();
 								accept = reply;
@@ -316,13 +323,24 @@ public class CuratorAgent extends GuiAgent implements MuseumVocabulary {
 					}
 					// Accept the proposal of the best proposer
 					if (accept != null) {
-						System.out.println("Accepting proposal "+bestProposal+" from responder "+bestProposer.getName());
+						System.out.println("Accepting proposal "+" from responder "+bestProposer.getLocalName());
 						accept.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
-					}						
+					}			
+					else {
+						int  price = artifact.getMaxPrice();
+						price = (int) (price*0.9);
+						if (price>artifact.getReservePrice()){
+							artifact.setMaxPrice(price);
+							addBehaviour(new SearchInDF(myAgent,artifact));
+						}
+						else{
+							System.out.println("Auction is over. Artifact was not sold");
+						}
+					}
 				}
 				
 				protected void handleInform(ACLMessage inform) {
-					System.out.println("Agent "+inform.getSender().getName()+" successfully performed the requested action");
+					System.out.println("Auctioner "+inform.getSender().getLocalName()+" successfully bought the artifact");
 				}
 				
 			} 
@@ -434,7 +452,7 @@ public class CuratorAgent extends GuiAgent implements MuseumVocabulary {
 		if(command == GET_ARTIFACT){
 			Artifact a = (Artifact) ev.getParameter(0);
 			String arName = a.getName();
-			addBehaviour(new SearchInDF(this, arName));
+			addBehaviour(new SearchInDF(this, a));
 		}
 		
 	}
