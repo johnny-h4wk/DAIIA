@@ -193,7 +193,7 @@ public class CuratorAgent extends GuiAgent implements MuseumVocabulary {
 				sendMessage(ACLMessage.INFORM, mo);
 			}
 		});
-		sb.addSubBehaviour(new ReceiveMessages(this));
+		//sb.addSubBehaviour(new ReceiveMessages(this));
 		addBehaviour(sb);
 
 		// Set up the gui
