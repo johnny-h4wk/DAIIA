@@ -40,8 +40,11 @@ class ProfilerAgentGui extends JFrame implements ActionListener,
 	private JTable artifactTable;
 
 	private ProfilerAgent myAgent;
+	private JTable table;
 
 	public ProfilerAgentGui(ProfilerAgent a) {
+		setPreferredSize(new Dimension(395, 439));
+		getContentPane().setPreferredSize(new Dimension(400, 400));
 		// ------------------------------------------- Constructor
 
 		myAgent = a;
@@ -65,10 +68,6 @@ class ProfilerAgentGui extends JFrame implements ActionListener,
 		creatorLabel.setFont(new Font("Arial", 1, 12));
 		creatorLabel.setText("Creator");
 
-		artifactLabel = new JLabel();
-		artifactLabel.setFont(new Font("Arial", 1, 12));
-		artifactLabel.setText("Recommended Artifacts");
-
 		genreMenu = new JComboBox<Object>(genre);
 		genreMenu.setBackground(new Color(153, 153, 153));
 		genreMenu.setFont(new Font("Verdana", 0, 12));
@@ -80,19 +79,59 @@ class ProfilerAgentGui extends JFrame implements ActionListener,
 		creatorMenu.setForeground(new Color(0, 51, 51));
 
 		ok = new JButton();
+		ok.setPreferredSize(new Dimension(40, 9));
 		ok.setFont(new Font("DejaVu Sans Mono", 0, 12));
 		ok.setText("OK");
 		ok.addActionListener(this);
 
 		quit = new JButton();
-		quit.setFont(new Font("DejaVu Sans Mono", 0, 12));
+		quit.setFont(new Font("DejaVu Sans Mono", Font.PLAIN, 10));
 		quit.setText("QUIT");
 		quit.setToolTipText("Stop agent and exit");
 		quit.addActionListener(this);
 
 		Object obj[][] = new Object[0][columnNames.length];
 		TableModel model = new TableDataModel(obj, columnNames);
+		getContentPane().setLayout(null);
+
+		JPanel base = new JPanel();
+		base.setBounds(0, 0, 400, 400);
+		base.setPreferredSize(new Dimension(400, 400));
+		base.setBorder(new EmptyBorder(15, 15, 15, 15));
+		getContentPane().add(base);
+		base.setLayout(null);
+
+		JPanel panel1 = new JPanel();
+		panel1.setBounds(15, 15, 347, 21);
+		panel1.setLayout(new BorderLayout(25, 0));
+		panel1.add(msg_text);
+		base.add(panel1);
+
+		// JPanel panel2 = new JPanel();
+		JPanel panel2_1 = new JPanel();
+		panel2_1.setBounds(15, 47, 276, 46);
+		JPanel panel2_2 = new JPanel();
+		panel2_2.setBounds(301, 47, 72, 46);
+		panel2_1.setLayout(new GridLayout(2, 2));
+		panel2_2.setLayout(new BoxLayout(panel2_2, BoxLayout.Y_AXIS));
+		// panel2.setLayout(new BorderLayout(100,10));
+		panel2_1.add(genreLabel);
+		panel2_1.add(genreMenu);
+		panel2_2.add(ok);
+		panel2_1.add(creatorLabel);
+		panel2_1.add(creatorMenu);
+		panel2_2.add(quit);
+		// panel2.add(panel2_1, BorderLayout.WEST);
+		// panel2.add(panel2_2, BorderLayout.EAST);
+		base.add(panel2_1);
+		base.add(panel2_2);
+
+		panel3 = new JPanel();
+		panel3.setBounds(15, 121, 347, 117);
+		panel3.setLayout(null);
 		artifactTable = new JTable(model);
+		artifactTable.setBounds(0, 0, 345, 115);
+		panel3.add(artifactTable);
 		artifactTable.setFillsViewportHeight(true);
 		artifactTable.setPreferredScrollableViewportSize(new Dimension(320, 100));
 		artifactTable.setFont(new Font("Arial", Font.PLAIN, 11));
@@ -140,43 +179,41 @@ class ProfilerAgentGui extends JFrame implements ActionListener,
 				}
 			}
 		});
-
-		JPanel base = new JPanel();
-		base.setBorder(new EmptyBorder(15, 15, 15, 15));
-		base.setLayout(new BorderLayout(10, 65));
-		getContentPane().add(base);
-
-		JPanel panel1 = new JPanel();
-		panel1.setLayout(new BorderLayout(25, 0));
-		panel1.add(msg_text);
-		base.add(panel1, BorderLayout.NORTH);
-
-		// JPanel panel2 = new JPanel();
-		JPanel panel2_1 = new JPanel();
-		JPanel panel2_2 = new JPanel();
-		panel2_1.setLayout(new GridLayout(2, 2));
-		panel2_2.setLayout(new BoxLayout(panel2_2, BoxLayout.Y_AXIS));
-		// panel2.setLayout(new BorderLayout(100,10));
-		panel2_1.add(genreLabel);
-		panel2_1.add(genreMenu);
-		panel2_2.add(ok);
-		panel2_1.add(creatorLabel);
-		panel2_1.add(creatorMenu);
-		panel2_2.add(quit);
-		// panel2.add(panel2_1, BorderLayout.WEST);
-		// panel2.add(panel2_2, BorderLayout.EAST);
-		base.add(panel2_1, BorderLayout.CENTER);
-		base.add(panel2_2, BorderLayout.EAST);
-
-		panel3 = new JPanel();
-		panel3.setLayout(new BorderLayout(0, 0));
-		panel3.add(artifactLabel, BorderLayout.NORTH);
-		panel3.add(new JScrollPane(artifactTable));
-		base.add(panel3, BorderLayout.SOUTH);
+		JScrollPane scrollPane = new JScrollPane();
+		scrollPane.setBounds(0, 0, 347, 117);
+		panel3.add(scrollPane);
+		base.add(panel3);
+		
+				artifactLabel = new JLabel();
+				artifactLabel.setBounds(15, 104, 347, 15);
+				base.add(artifactLabel);
+				artifactLabel.setFont(new Font("Arial", 1, 12));
+				artifactLabel.setText("Recommended Artifacts");
+				
+				JPanel panel = new JPanel();
+				panel.setLayout(null);
+				panel.setBounds(15, 272, 347, 117);
+				base.add(panel);
+				
+				table = new JTable((TableModel) null);
+				table.setPreferredScrollableViewportSize(new Dimension(320, 100));
+				table.setFont(new Font("Arial", Font.PLAIN, 11));
+				table.setFillsViewportHeight(true);
+				table.setBounds(0, 0, 345, 115);
+				panel.add(table);
+				
+				JScrollPane scrollPane_1 = new JScrollPane();
+				scrollPane_1.setBounds(0, 0, 347, 117);
+				panel.add(scrollPane_1);
+				
+				JLabel lblAuction = new JLabel();
+				lblAuction.setText("Auction");
+				lblAuction.setFont(new Font("Arial", Font.BOLD, 12));
+				lblAuction.setBounds(15, 256, 347, 15);
+				base.add(lblAuction);
 
 		pack();
-		setSize(400, 450);
-		setResizable(false);
+		setSize(385, 439);
 		Rectangle r = getGraphicsConfiguration().getBounds();
 		setLocation(r.x + (r.width - getWidth()) / 2, r.y
 				+ (r.height - getHeight()) / 2);
@@ -339,5 +376,4 @@ class ProfilerAgentGui extends JFrame implements ActionListener,
 			return data;
 		}
 	}// end TableDataModel
-
 }
